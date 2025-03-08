@@ -4,7 +4,8 @@ import PiggyBankVisualization from '../components/piggyBank/PiggyBank';
 import MoneyWaterfall from '../components/piggyBank/PiggyBank';
 import Raffle from "../../../../backend/out/Raffle.sol/Raffle.json";
 import { ethers } from 'ethers';
-import { getBlockDetails } from 'viem/zksync';
+import { useAccount } from "wagmi";
+
 
 // Mock Web3 connection - in a real app, you'd use ethers.js or web3.js
 const mockContractData = {
@@ -22,6 +23,7 @@ const formatAddress = (address) => {
 };
 
 const RafflePage = () => {
+  const { address } = useAccount();
   const [contractData, setContractData] = useState({
     entranceFee: '',
     numberOfPlayers: '',
@@ -59,12 +61,13 @@ const RafflePage = () => {
       setContractData((prev) => ({ ...prev, numberOfPlayers: players.toString() }));
       const winner = await raffleContract.getRecentWinner();
       setContractData((prev) => ({ ...prev, lastWinner: winner }));
-      // const tickets = await raffleContract.getUserTickets();
-      // setContractData((prev) => ({ ...prev, userTickets: tickets.toString() }));
+      const tickets = await raffleContract.getPlayerEntries(address);
+      setContractData((prev) => ({ ...prev, userTickets: tickets.toString() }));
       const state = await raffleContract.getRaffleState();
       setContractData((prev) => ({ ...prev, raffleState: state }));
-      const balance = players * fee;
-      setContractData((prev) => ({ ...prev, balance: balance.toString() }));
+      // const balance = Number(players) * Number(fee);
+
+      // setContractData((prev) => ({ ...prev, balance: balance.toString() }));
       // console.log(contractData);
     }
 
