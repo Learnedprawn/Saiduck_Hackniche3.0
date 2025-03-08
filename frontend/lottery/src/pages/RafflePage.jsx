@@ -93,8 +93,8 @@ const RafflePage = () => {
       // Update mock data after purchase
       setContractData(prev => ({
         ...prev,
-        numberOfPlayers: prev.numberOfPlayers + 1,
-        userTickets: prev.userTickets + 1,
+        numberOfPlayers: Number(prev.numberOfPlayers) + 1,
+        userTickets: Number(prev.userTickets) + 1,
         balance: (parseFloat(prev.balance) + parseFloat(prev.entranceFee)).toFixed(2)
       }));
 
