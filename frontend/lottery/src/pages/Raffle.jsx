@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BellRing, Ticket, Trophy, Wallet } from 'lucide-react';
+import { BellRing, Ticket, Trophy, Wallet, Clock, CheckCircle, UserPlus } from 'lucide-react';
 
 // Mock Web3 connection - in a real app, you'd use ethers.js or web3.js
 const mockContractData = {
@@ -7,8 +7,8 @@ const mockContractData = {
   numberOfPlayers: 12,
   lastWinner: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
   userTickets: 2,
-  rafflState: "OPEN",
-  balance: "0.12"
+  raffleState: "OPEN",
+  balance: "0.12",
 };
 
 const formatAddress = (address) => {
@@ -53,6 +53,48 @@ const Raffle = () => {
     }
   };
 
+  // Function to get status badge styling based on status
+  const getStatusBadgeClass = (status) => {
+    switch (status?.toUpperCase()) {
+      case "OPEN":
+        return "bg-green-100 text-green-800";
+      case "CALCULATING":
+        return "bg-yellow-100 text-yellow-800";
+      case "VOTING":
+        return "bg-blue-100 text-blue-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  // Function to get status icon based on status
+  const getStatusIcon = (status) => {
+    switch (status?.toUpperCase()) {
+      case "OPEN":
+        return <UserPlus className="mr-2" size={20} />;
+      case "CALCULATING":
+        return <Clock className="mr-2" size={20} />;
+      case "VOTING":
+        return <CheckCircle className="mr-2" size={20} />;
+      default:
+        return <BellRing className="mr-2" size={20} />;
+    }
+  };
+
+  // Function to get status description based on status
+  const getStatusDescription = (status) => {
+    switch (status?.toUpperCase()) {
+      case "OPEN":
+        return "The lottery is open for entries. Buy your tickets now!";
+      case "CALCULATING":
+        return "Calculating the winner. Please wait while we process the results.";
+      case "VOTING":
+        return "Voting period is open. Cast your vote for the next lottery parameters.";
+      default:
+        return "Lottery status unavailable.";
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Navbar */}
@@ -84,6 +126,18 @@ const Raffle = () => {
           </div>
         )}
 
+        {/* Raffle Status Banner */}
+        <div className={`mb-6 p-4 rounded-lg flex items-center ${getStatusBadgeClass(contractData.raffleState)}`}>
+          {getStatusIcon(contractData.raffleState)}
+          <div>
+            <h3 className="font-bold text-lg">Lottery Status: {contractData.raffleState}</h3>
+            <p>{getStatusDescription(contractData.raffleState)}</p>
+            {contractData.raffleState === "OPEN" && contractData.timeRemaining && (
+              <p className="mt-1 font-medium">Time remaining: {contractData.timeRemaining}</p>
+            )}
+          </div>
+        </div>
+
         {/* Prize Pool Card */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
           <div className="bg-blue-800 text-white p-4">
@@ -98,6 +152,18 @@ const Raffle = () => {
             </p>
           </div>
         </div>
+
+        {/* Raffle State Display
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+          <div className="bg-blue-800 text-white p-4">
+            <h2 className="text-xl font-semibold">Raffle Status</h2>
+          </div>
+          <div className="p-6 text-center">
+            <span className={`text-lg font-bold px-4 py-2 rounded-lg ${contractData.raffleState === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+              {contractData.raffleState}
+            </span>
+          </div>
+        </div> */}
 
         {/* Buy Ticket & Info Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -116,8 +182,8 @@ const Raffle = () => {
                   onClick={handleBuyTicket}
                   disabled={isLoading || contractData.raffleState !== "OPEN"}
                   className={`px-6 py-3 rounded-lg font-semibold ${isLoading || contractData.raffleState !== "OPEN"
-                      ? 'bg-gray-300 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    ? 'bg-gray-300 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
                     }`}
                 >
                   {isLoading ? 'Processing...' : 'Buy Ticket'}
