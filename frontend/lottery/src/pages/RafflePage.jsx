@@ -65,7 +65,7 @@ const RafflePage = () => {
       setContractData((prev) => ({ ...prev, raffleState: state }));
       const balance = players * fee;
       setContractData((prev) => ({ ...prev, balance: balance.toString() }));
-      console.log(contractData);
+      // console.log(contractData);
     }
 
     if (raffleContract) {
@@ -84,8 +84,9 @@ const RafflePage = () => {
 
     try {
       // This would be a real contract interaction in production
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
+      const tx = await raffleContract.enterRaffle({ value: ethers.utils.parseEther(contractData.entranceFee) }
+      );
+      await tx.wait();
       // Update mock data after purchase
       setContractData(prev => ({
         ...prev,
@@ -105,12 +106,12 @@ const RafflePage = () => {
 
   // Function to get status badge styling based on status
   const getStatusBadgeClass = (status) => {
-    switch (status?.toUpperCase()) {
-      case "OPEN":
+    switch (status) {
+      case 0:
         return "bg-green-100 text-green-800";
-      case "CALCULATING":
+      case 1:
         return "bg-yellow-100 text-yellow-800";
-      case "VOTING":
+      case 2:
         return "bg-blue-100 text-blue-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -119,12 +120,12 @@ const RafflePage = () => {
 
   // Function to get status icon based on status
   const getStatusIcon = (status) => {
-    switch (status?.toUpperCase()) {
-      case "OPEN":
+    switch (status) {
+      case 0:
         return <UserPlus className="mr-2" size={20} />;
-      case "CALCULATING":
+      case 1:
         return <Clock className="mr-2" size={20} />;
-      case "VOTING":
+      case 2:
         return <CheckCircle className="mr-2" size={20} />;
       default:
         return <BellRing className="mr-2" size={20} />;
@@ -133,12 +134,12 @@ const RafflePage = () => {
 
   // Function to get status description based on status
   const getStatusDescription = (status) => {
-    switch (status?.toUpperCase()) {
-      case "OPEN":
+    switch (status) {
+      case 0:
         return "The lottery is open for entries. Buy your tickets now!";
-      case "CALCULATING":
+      case 1:
         return "Calculating the winner. Please wait while we process the results.";
-      case "VOTING":
+      case 2:
         return "Voting period is open. Cast your vote for the next lottery parameters.";
       default:
         return "Lottery status unavailable.";
@@ -180,7 +181,7 @@ const RafflePage = () => {
         <div className={`mb-6 p-4 rounded-lg flex items-center ${getStatusBadgeClass(contractData.raffleState)}`}>
           {getStatusIcon(contractData.raffleState)}
           <div>
-            <h3 className="font-bold text-lg">Lottery Status: {contractData.raffleState}</h3>
+            <h3 className="font-bold text-lg">Lottery Status: {contractData.raffleState == '0' ? "open" : (contractData.raffleState == 1 ? "CALCULATING" : "VOTING")}</h3>
             <p>{getStatusDescription(contractData.raffleState)}</p>
             {contractData.raffleState === "OPEN" && contractData.timeRemaining && (
               <p className="mt-1 font-medium">Time remaining: {contractData.timeRemaining}</p>
@@ -233,8 +234,8 @@ const RafflePage = () => {
                 </div>
                 <button
                   onClick={handleBuyTicket}
-                  disabled={isLoading || contractData.raffleState !== "OPEN"}
-                  className={`px-6 py-3 rounded-lg font-semibold ${isLoading || contractData.raffleState !== "OPEN"
+                  disabled={isLoading || contractData.raffleState != '0'}
+                  className={`px-6 py-3 rounded-lg font-semibold ${isLoading || contractData.raffleState != '0'
                     ? 'bg-gray-300 cursor-not-allowed'
                     : 'bg-blue-600 hover:bg-blue-700 text-white'
                     }`}

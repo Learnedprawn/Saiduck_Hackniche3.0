@@ -53,7 +53,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Homepage />} />
               {/* <Route path="/raffle" element={<Raffle />} /> */}
-                <Route path="/:id" element={<RafflePage />} />
+              <Route path="/raffle" element={<RafflePage />} />
               <Route path="/rafflefactory" element={<RaffleFactory />} />
             </Routes>
           </div>
