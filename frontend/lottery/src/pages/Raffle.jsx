@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { BellRing, Ticket, Trophy, Wallet, Clock, CheckCircle, UserPlus } from 'lucide-react';
+import PiggyBankVisualization from '../components/piggyBank/PiggyBank';
 
 // Mock Web3 connection - in a real app, you'd use ethers.js or web3.js
 const mockContractData = {
-  entranceFee: "0.01",
-  numberOfPlayers: 12,
+  entranceFee: "1.01",
+  numberOfPlayers: 1200,
   lastWinner: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
   userTickets: 2,
   raffleState: "OPEN",
@@ -140,6 +141,7 @@ const Raffle = () => {
 
         {/* Prize Pool Card */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+          <PiggyBankVisualization price={contractData.entranceFee} number={contractData.numberOfPlayers}></PiggyBankVisualization>
           <div className="bg-blue-800 text-white p-4">
             <h2 className="text-xl font-semibold">Current Prize Pool</h2>
           </div>
