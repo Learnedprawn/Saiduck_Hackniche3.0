@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {Script} from "forge-std/Script.sol";
+import {Script, console} from "forge-std/Script.sol";
 import {HelperConfig} from "./HelperConfig.s.sol";
 import {Raffle} from "../src/Raffle.sol";
 import {AddConsumer, CreateSubscription, FundSubscription} from "./Interactions.s.sol";
@@ -37,6 +37,9 @@ contract DeployRaffle is Script {
         vm.stopBroadcast();
 
         // We already have a broadcast in here
+        console.log("account:", config.account);
+        console.log("accountRaffle:", address(raffle));
+
         addConsumer.addConsumer(address(raffle), config.vrfCoordinatorV2_5, config.subscriptionId, config.account);
         return (raffle, helperConfig);
     }

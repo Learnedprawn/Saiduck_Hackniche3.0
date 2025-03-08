@@ -55,3 +55,6 @@ addConsumer:
 fundSubscription:
 	@forge script script/Interactions.s.sol:FundSubscription $(NETWORK_ARGS)
 
+deployRaffleFactory:
+	@forge script script/DeployRaffleFactory.s.sol:DeployRaffleFactory $(NETWORK_ARGS)
+
