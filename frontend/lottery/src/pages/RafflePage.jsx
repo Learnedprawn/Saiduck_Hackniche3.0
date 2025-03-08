@@ -1,11 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { BellRing, Ticket, Trophy, Wallet, Clock, CheckCircle, UserPlus } from 'lucide-react';
-import PiggyBankVisualization from '../components/piggyBank/PiggyBank';
-import MoneyWaterfall from '../components/piggyBank/PiggyBank';
+import React, { useState, useEffect } from "react";
+import {
+  BellRing,
+  Ticket,
+  Trophy,
+  Wallet,
+  Clock,
+  CheckCircle,
+  UserPlus,
+} from "lucide-react";
+import PiggyBankVisualization from "../components/piggyBank/PiggyBank";
+import MoneyWaterfall from "../components/piggyBank/PiggyBank";
 import Raffle from "../../../../backend/out/Raffle.sol/Raffle.json";
-import { ethers } from 'ethers';
+import { ethers } from "ethers";
 import { useAccount } from "wagmi";
-
 
 // Mock Web3 connection - in a real app, you'd use ethers.js or web3.js
 const mockContractData = {
@@ -19,18 +26,20 @@ const mockContractData = {
 
 const formatAddress = (address) => {
   if (!address) return "No winner yet";
-  return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+  return `${address.substring(0, 6)}...${address.substring(
+    address.length - 4
+  )}`;
 };
 
 const RafflePage = () => {
   const { address } = useAccount();
   const [contractData, setContractData] = useState({
-    entranceFee: '',
-    numberOfPlayers: '',
-    lastWinner: '',
-    userTickets: '',
-    raffleState: '',
-    balance: ''
+    entranceFee: "",
+    numberOfPlayers: "",
+    lastWinner: "",
+    userTickets: "",
+    raffleState: "",
+    balance: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [userAddress, setUserAddress] = useState("0x123...4567");
@@ -53,12 +62,17 @@ const RafflePage = () => {
   }, []);
 
   useEffect(() => {
-
     const getRaffleDetails = async () => {
       const fee = await raffleContract.getEntranceFee();
-      setContractData((prev) => ({ ...prev, entranceFee: ethers.utils.formatEther(fee) }));
+      setContractData((prev) => ({
+        ...prev,
+        entranceFee: ethers.utils.formatEther(fee),
+      }));
       const players = await raffleContract.getNumberOfPlayers();
-      setContractData((prev) => ({ ...prev, numberOfPlayers: players.toString() }));
+      setContractData((prev) => ({
+        ...prev,
+        numberOfPlayers: players.toString(),
+      }));
       const winner = await raffleContract.getRecentWinner();
       setContractData((prev) => ({ ...prev, lastWinner: winner }));
       const tickets = await raffleContract.getPlayerEntries(address);
@@ -69,13 +83,12 @@ const RafflePage = () => {
 
       // setContractData((prev) => ({ ...prev, balance: balance.toString() }));
       // console.log(contractData);
-    }
+    };
 
     if (raffleContract) {
       getRaffleDetails();
     }
   }, [raffleContract]);
-
 
   useEffect(() => {
     console.log(contractData);
@@ -87,15 +100,18 @@ const RafflePage = () => {
 
     try {
       // This would be a real contract interaction in production
-      const tx = await raffleContract.enterRaffle({ value: ethers.utils.parseEther(contractData.entranceFee) }
-      );
+      const tx = await raffleContract.enterRaffle({
+        value: ethers.utils.parseEther(contractData.entranceFee),
+      });
       await tx.wait();
       // Update mock data after purchase
-      setContractData(prev => ({
+      setContractData((prev) => ({
         ...prev,
         numberOfPlayers: prev.numberOfPlayers + 1,
         userTickets: prev.userTickets + 1,
-        balance: (parseFloat(prev.balance) + parseFloat(prev.entranceFee)).toFixed(2)
+        balance: (
+          parseFloat(prev.balance) + parseFloat(prev.entranceFee)
+        ).toFixed(2),
       }));
 
       setTxStatus("Ticket purchased successfully!");
@@ -175,20 +191,40 @@ const RafflePage = () => {
       <main className="container mx-auto px-4 py-8 flex-grow">
         {/* Status Messages */}
         {txStatus && (
-          <div className={`mb-6 p-4 rounded-lg ${txStatus.includes('Error') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+          <div
+            className={`mb-6 p-4 rounded-lg ${
+              txStatus.includes("Error")
+                ? "bg-red-100 text-red-800"
+                : "bg-green-100 text-green-800"
+            }`}
+          >
             {txStatus}
           </div>
         )}
 
         {/* Raffle Status Banner */}
-        <div className={`mb-6 p-4 rounded-lg flex items-center ${getStatusBadgeClass(contractData.raffleState)}`}>
+        <div
+          className={`mb-6 p-4 rounded-lg flex items-center ${getStatusBadgeClass(
+            contractData.raffleState
+          )}`}
+        >
           {getStatusIcon(contractData.raffleState)}
           <div>
-            <h3 className="font-bold text-lg">Lottery Status: {contractData.raffleState == '0' ? "open" : (contractData.raffleState == 1 ? "CALCULATING" : "VOTING")}</h3>
+            <h3 className="font-bold text-lg">
+              Lottery Status:{" "}
+              {contractData.raffleState == "0"
+                ? "open"
+                : contractData.raffleState == 1
+                ? "CALCULATING"
+                : "VOTING"}
+            </h3>
             <p>{getStatusDescription(contractData.raffleState)}</p>
-            {contractData.raffleState === "OPEN" && contractData.timeRemaining && (
-              <p className="mt-1 font-medium">Time remaining: {contractData.timeRemaining}</p>
-            )}
+            {contractData.raffleState === "OPEN" &&
+              contractData.timeRemaining && (
+                <p className="mt-1 font-medium">
+                  Time remaining: {contractData.timeRemaining}
+                </p>
+              )}
           </div>
         </div>
 
@@ -196,7 +232,11 @@ const RafflePage = () => {
         <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
           {/* <PiggyBankVisualization price={contractData.entranceFee} number={contractData.numberOfPlayers}></PiggyBankVisualization> */}
           {/* <PiggyBankVisualization price = {contractData.entranceFee} number = {contractData.numberOfPlayers}></PiggyBankVisualization> */}
-          <MoneyWaterfall money={contractData.balance} number={contractData.numberOfPlayers} price={contractData.entranceFee} />
+          <MoneyWaterfall
+            money={contractData.balance}
+            number={contractData.numberOfPlayers}
+            price={contractData.entranceFee}
+          />
           <div className="bg-blue-800 text-white p-4">
             <h2 className="text-xl font-semibold">Current Prize Pool</h2>
           </div>
@@ -233,17 +273,20 @@ const RafflePage = () => {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-gray-700 font-semibold">Entrance Fee</p>
-                  <p className="text-2xl font-bold">{contractData.entranceFee} ETH</p>
+                  <p className="text-2xl font-bold">
+                    {contractData.entranceFee} ETH
+                  </p>
                 </div>
                 <button
                   onClick={handleBuyTicket}
-                  disabled={isLoading || contractData.raffleState != '0'}
-                  className={`px-6 py-3 rounded-lg font-semibold ${isLoading || contractData.raffleState != '0'
-                    ? 'bg-gray-300 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                    }`}
+                  disabled={isLoading || contractData.raffleState != "0"}
+                  className={`px-6 py-3 rounded-lg font-semibold ${
+                    isLoading || contractData.raffleState != "0"
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700 text-white"
+                  }`}
                 >
-                  {isLoading ? 'Processing...' : 'Buy Ticket'}
+                  {isLoading ? "Processing..." : "Buy Ticket"}
                 </button>
               </div>
               {contractData.raffleState !== "OPEN" && (
@@ -274,7 +317,9 @@ const RafflePage = () => {
       {/* Footer */}
       <footer className="bg-gray-800 text-white py-4 text-center">
         <p>© 2025 LOTTO LOTTERY. All rights reserved.</p>
-        <p className="text-sm text-gray-400 mt-1">Smart Contract Powered by Chainlink VRF</p>
+        <p className="text-sm text-gray-400 mt-1">
+          Smart Contract Powered by Chainlink VRF
+        </p>
       </footer>
     </div>
   );
