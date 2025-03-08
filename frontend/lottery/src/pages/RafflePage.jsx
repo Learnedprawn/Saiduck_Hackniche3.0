@@ -148,7 +148,7 @@ const RafflePage = () => {
           <div className="bg-blue-800 text-white p-4">
             <h2 className="text-xl font-semibold">Current Prize Pool</h2>
           </div>
-          {/* <div className="p-6 text-center">
+          <div className="p-6 text-center">
             <div className="text-4xl font-bold text-blue-800 mb-2">
               {contractData.balance} ETH
             </div>
@@ -168,7 +168,7 @@ const RafflePage = () => {
               {contractData.raffleState}
             </span>
           </div>*/}
-        </div>
+        {/* </div> */}
 
         {/* Buy Ticket & Info Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -217,14 +217,14 @@ const RafflePage = () => {
             </div>
           </div>
         </div>
-      </main>
+      </main >
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-white py-4 text-center">
+      < footer className="bg-gray-800 text-white py-4 text-center" >
         <p>© 2025 LOTTO LOTTERY. All rights reserved.</p>
         <p className="text-sm text-gray-400 mt-1">Smart Contract Powered by Chainlink VRF</p>
-      </footer>
-    </div>
+      </ footer>
+    </div >
   );
 };
 
