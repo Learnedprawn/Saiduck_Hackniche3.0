@@ -89,18 +89,20 @@ const Raffle = () => {
         {/* Prize Pool Card */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
           {/* <PiggyBankVisualization price = {contractData.entranceFee} number = {contractData.numberOfPlayers}></PiggyBankVisualization> */}
-          <MoneyWaterfall money = {contractData.balance} number = {contractData.numberOfPlayers} price = {contractData.entranceFee}/>
+          {/* <MoneyWaterfall money = {contractData.balance} number = {contractData.numberOfPlayers} price = {contractData.entranceFee}/> */}
           <div className="bg-blue-800 text-white p-4">
             <h2 className="text-xl font-semibold">Current Prize Pool</h2>
+          <MoneyWaterfall money = {contractData.balance} number = {contractData.numberOfPlayers} price = {contractData.entranceFee}/>
+
           </div>
-          <div className="p-6 text-center">
+          {/* <div className="p-6 text-center">
             <div className="text-4xl font-bold text-blue-800 mb-2">
               {contractData.balance} ETH
             </div>
             <p className="text-gray-600">
               {contractData.numberOfPlayers} players have entered
             </p>
-          </div>
+          </div> */}
         </div>
 
         {/* Buy Ticket & Info Row */}
