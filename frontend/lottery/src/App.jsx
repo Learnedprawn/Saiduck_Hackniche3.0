@@ -16,6 +16,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import RafflePage from './pages/RafflePage';
 import Navbar from './components/Navbar'
+import Homepage from './pages/Homepage';
 import RaffleFactory from './pages/RaffleFactory';
 
 
@@ -50,7 +51,9 @@ function App() {
           <div className="bg-white min-h-screen">
             <Navbar />
             <Routes>
-              <Route path="/:id" element={<RafflePage />} />
+              <Route path="/" element={<Homepage />} />
+              {/* <Route path="/raffle" element={<Raffle />} /> */}
+              <Route path="/raffle" element={<RafflePage />} />
               <Route path="/rafflefactory" element={<RaffleFactory />} />
             </Routes>
           </div>

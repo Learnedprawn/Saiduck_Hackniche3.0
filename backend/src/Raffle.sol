@@ -25,7 +25,8 @@ pragma solidity ^0.8.19;
 
 import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
 import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
-import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
+import {AutomationCompatibleInterface} from
+    "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
 
 /**
  * @title A sample Raffle Contract
@@ -61,7 +62,7 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     address private s_recentWinner;
     address payable[] private s_players;
     RaffleState private s_raffleState;
-    
+
     mapping(address player => uint256 entries) public s_playerEntries;
 
     /* Events */
@@ -156,7 +157,7 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
                 )
             })
         );
-       
+
         emit RequestedRaffleWinner(requestId);
     }
 
@@ -226,5 +227,9 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
 
     function getTimeRemaining() public view returns (uint256) {
         return i_interval - (block.timestamp - s_lastTimeStamp);
+    }
+
+    function getPlayerEntries(address player) public view returns (uint256) {
+        return s_playerEntries[player];
     }
 }

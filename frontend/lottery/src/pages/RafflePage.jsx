@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { BellRing, Ticket, Trophy, Wallet, Clock, CheckCircle, UserPlus } from 'lucide-react';
 import PiggyBankVisualization from '../components/piggyBank/PiggyBank';
 import MoneyWaterfall from '../components/piggyBank/PiggyBank';
+import Raffle from "../../../../backend/out/Raffle.sol/Raffle.json";
+import { ethers } from 'ethers';
+import { useAccount } from "wagmi";
+
 
 // Mock Web3 connection - in a real app, you'd use ethers.js or web3.js
 const mockContractData = {
@@ -19,16 +23,63 @@ const formatAddress = (address) => {
 };
 
 const RafflePage = () => {
-  const [contractData, setContractData] = useState(mockContractData);
+  const { address } = useAccount();
+  const [contractData, setContractData] = useState({
+    entranceFee: '',
+    numberOfPlayers: '',
+    lastWinner: '',
+    userTickets: '',
+    raffleState: '',
+    balance: ''
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [userAddress, setUserAddress] = useState("0x123...4567");
   const [txStatus, setTxStatus] = useState(null);
+  const [raffleContract, setRaffleContract] = useState(null);
 
-  // Simulate loading contract data
   useEffect(() => {
-    // In a real app, this would fetch data from the blockchain
-    console.log("Fetching lottery data...");
+    if (window.ethereum) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+
+      // Create a new contract instance with the signer
+      const contractInstance = new ethers.Contract(
+        import.meta.env.VITE_RAFFLE_CONTRACT_ADDRESS,
+        Raffle.abi,
+        signer
+      );
+      setRaffleContract(contractInstance);
+    }
   }, []);
+
+  useEffect(() => {
+
+    const getRaffleDetails = async () => {
+      const fee = await raffleContract.getEntranceFee();
+      setContractData((prev) => ({ ...prev, entranceFee: ethers.utils.formatEther(fee) }));
+      const players = await raffleContract.getNumberOfPlayers();
+      setContractData((prev) => ({ ...prev, numberOfPlayers: players.toString() }));
+      const winner = await raffleContract.getRecentWinner();
+      setContractData((prev) => ({ ...prev, lastWinner: winner }));
+      const tickets = await raffleContract.getPlayerEntries(address);
+      setContractData((prev) => ({ ...prev, userTickets: tickets.toString() }));
+      const state = await raffleContract.getRaffleState();
+      setContractData((prev) => ({ ...prev, raffleState: state }));
+      // const balance = Number(players) * Number(fee);
+
+      // setContractData((prev) => ({ ...prev, balance: balance.toString() }));
+      // console.log(contractData);
+    }
+
+    if (raffleContract) {
+      getRaffleDetails();
+    }
+  }, [raffleContract]);
+
+
+  useEffect(() => {
+    console.log(contractData);
+  }, [contractData]);
 
   const handleBuyTicket = async () => {
     setIsLoading(true);
@@ -36,8 +87,9 @@ const RafflePage = () => {
 
     try {
       // This would be a real contract interaction in production
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
+      const tx = await raffleContract.enterRaffle({ value: ethers.utils.parseEther(contractData.entranceFee) }
+      );
+      await tx.wait();
       // Update mock data after purchase
       setContractData(prev => ({
         ...prev,
@@ -57,12 +109,12 @@ const RafflePage = () => {
 
   // Function to get status badge styling based on status
   const getStatusBadgeClass = (status) => {
-    switch (status?.toUpperCase()) {
-      case "OPEN":
+    switch (status) {
+      case 0:
         return "bg-green-100 text-green-800";
-      case "CALCULATING":
+      case 1:
         return "bg-yellow-100 text-yellow-800";
-      case "VOTING":
+      case 2:
         return "bg-blue-100 text-blue-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -71,12 +123,12 @@ const RafflePage = () => {
 
   // Function to get status icon based on status
   const getStatusIcon = (status) => {
-    switch (status?.toUpperCase()) {
-      case "OPEN":
+    switch (status) {
+      case 0:
         return <UserPlus className="mr-2" size={20} />;
-      case "CALCULATING":
+      case 1:
         return <Clock className="mr-2" size={20} />;
-      case "VOTING":
+      case 2:
         return <CheckCircle className="mr-2" size={20} />;
       default:
         return <BellRing className="mr-2" size={20} />;
@@ -85,12 +137,12 @@ const RafflePage = () => {
 
   // Function to get status description based on status
   const getStatusDescription = (status) => {
-    switch (status?.toUpperCase()) {
-      case "OPEN":
+    switch (status) {
+      case 0:
         return "The lottery is open for entries. Buy your tickets now!";
-      case "CALCULATING":
+      case 1:
         return "Calculating the winner. Please wait while we process the results.";
-      case "VOTING":
+      case 2:
         return "Voting period is open. Cast your vote for the next lottery parameters.";
       default:
         return "Lottery status unavailable.";
@@ -132,7 +184,7 @@ const RafflePage = () => {
         <div className={`mb-6 p-4 rounded-lg flex items-center ${getStatusBadgeClass(contractData.raffleState)}`}>
           {getStatusIcon(contractData.raffleState)}
           <div>
-            <h3 className="font-bold text-lg">Lottery Status: {contractData.raffleState}</h3>
+            <h3 className="font-bold text-lg">Lottery Status: {contractData.raffleState == '0' ? "open" : (contractData.raffleState == 1 ? "CALCULATING" : "VOTING")}</h3>
             <p>{getStatusDescription(contractData.raffleState)}</p>
             {contractData.raffleState === "OPEN" && contractData.timeRemaining && (
               <p className="mt-1 font-medium">Time remaining: {contractData.timeRemaining}</p>
@@ -185,8 +237,8 @@ const RafflePage = () => {
                 </div>
                 <button
                   onClick={handleBuyTicket}
-                  disabled={isLoading || contractData.raffleState !== "OPEN"}
-                  className={`px-6 py-3 rounded-lg font-semibold ${isLoading || contractData.raffleState !== "OPEN"
+                  disabled={isLoading || contractData.raffleState != '0'}
+                  className={`px-6 py-3 rounded-lg font-semibold ${isLoading || contractData.raffleState != '0'
                     ? 'bg-gray-300 cursor-not-allowed'
                     : 'bg-blue-600 hover:bg-blue-700 text-white'
                     }`}
