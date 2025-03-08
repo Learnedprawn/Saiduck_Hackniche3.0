@@ -8,14 +8,14 @@ import { useAccount } from "wagmi";
 
 
 // Mock Web3 connection - in a real app, you'd use ethers.js or web3.js
-const mockContractData = {
-  entranceFee: "1.01",
-  numberOfPlayers: 1200,
-  lastWinner: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-  userTickets: 2,
-  raffleState: "OPEN",
-  balance: "0.12",
-};
+// const mockContractData = {
+//   entranceFee: "1.01",
+//   numberOfPlayers: 1200,
+//   lastWinner: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+//   userTickets: 2,
+//   raffleState: "OPEN",
+//   balance: "0.12",
+// };
 
 const formatAddress = (address) => {
   if (!address) return "No winner yet";
@@ -30,12 +30,43 @@ const RafflePage = () => {
     lastWinner: '',
     userTickets: '',
     raffleState: '',
-    balance: ''
+    balance: '',
+    remaining_time: '',
+    interval_var: '',
+    last_timestamp: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [userAddress, setUserAddress] = useState("0x123...4567");
   const [txStatus, setTxStatus] = useState(null);
   const [raffleContract, setRaffleContract] = useState(null);
+  // const [remainingTime, setRemainingTime] = useState(null);
+  // const [interval, setIntervalTime] = useState(null);
+  // const [lastTimeStamp, setLastTimeStamp] = useState(null);
+
+  const [timeRemaining, setTimeRemaining] = useState(0);
+
+  // Add this useEffect to update the timer every second
+  useEffect(() => {
+    // Only start the timer if we have valid data and the raffle is open
+    if (contractData.remaining_time && contractData.raffleState == '0') {
+      // Initialize the timer with the contract data
+      setTimeRemaining(parseInt(contractData.remaining_time));
+
+      // Set up interval to count down every second
+      const timerInterval = setInterval(() => {
+        setTimeRemaining(prevTime => {
+          if (prevTime <= 1) {
+            clearInterval(timerInterval);
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+
+      // Clean up interval on component unmount or when raffle state changes
+      return () => clearInterval(timerInterval);
+    }
+  }, [contractData.remaining_time, contractData.raffleState]);
 
   useEffect(() => {
     if (window.ethereum) {
@@ -58,14 +89,30 @@ const RafflePage = () => {
     const getRaffleDetails = async () => {
       const fee = await raffleContract.getEntranceFee();
       setContractData((prev) => ({ ...prev, entranceFee: ethers.utils.formatEther(fee) }));
+
       const players = await raffleContract.getNumberOfPlayers();
       setContractData((prev) => ({ ...prev, numberOfPlayers: players.toString() }));
+
       const winner = await raffleContract.getRecentWinner();
       setContractData((prev) => ({ ...prev, lastWinner: winner }));
+
       const tickets = await raffleContract.getPlayerEntries(address);
       setContractData((prev) => ({ ...prev, userTickets: tickets.toString() }));
+
       const state = await raffleContract.getRaffleState();
       setContractData((prev) => ({ ...prev, raffleState: state }));
+
+      const remainingtime = await raffleContract.getTimeRemaining();
+      setContractData((prev) => ({ ...prev, remaining_time: remainingtime }));
+
+      const interval = await raffleContract.getInterval();
+      setContractData((prev) => ({ ...prev, interval_var: interval }));
+
+      const last_ts = await raffleContract.getLastTimeStamp();
+      setContractData((prev) => ({ ...prev, last_timestamp: last_ts }));
+      console.log("remianing time: " + remainingtime);
+
+
       // const balance = Number(players) * Number(fee);
 
       // setContractData((prev) => ({ ...prev, balance: balance.toString() }));
@@ -182,22 +229,73 @@ const RafflePage = () => {
         )}
 
         {/* Raffle Status Banner */}
-        <div className={`mb-6 p-4 rounded-lg flex items-center ${getStatusBadgeClass(contractData.raffleState)}`}>
-          {getStatusIcon(contractData.raffleState)}
-          <div>
-            <h3 className="font-bold text-lg">Lottery Status: {contractData.raffleState == '0' ? "open" : (contractData.raffleState == 1 ? "CALCULATING" : "VOTING")}</h3>
-            <p>{getStatusDescription(contractData.raffleState)}</p>
-            {contractData.raffleState === "OPEN" && contractData.timeRemaining && (
-              <p className="mt-1 font-medium">Time remaining: {contractData.timeRemaining}</p>
+        {/* <div grid grid-cols-1 md:grid-cols-2 gap-6>
+          <div className={`mb-6 p-4 rounded-lg flex items-center ${getStatusBadgeClass(contractData.raffleState)}`}>
+            {getStatusIcon(contractData.raffleState)}
+            <div>
+              <h3 className="font-bold text-lg">Lottery Status: {contractData.raffleState == '0' ? "open" : (contractData.raffleState == 1 ? "CALCULATING" : "VOTING")}</h3>
+              <p>{getStatusDescription(contractData.raffleState)}</p>
+              {contractData.raffleState === "OPEN" && contractData.timeRemaining && (
+                <p className="mt-1 font-medium">Time remaining: {contractData.timeRemaining}</p>
+              )}
+            </div>
+          </div>
+          <div className="mb-6 rounded-lg flex items-center ">
+            implement the counter timer based on timestamp here
+          </div>
+        </div> */}
+
+        {/* Raffle Status Banner */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className={`p-4 rounded-lg flex items-center ${getStatusBadgeClass(contractData.raffleState)}`}>
+            {getStatusIcon(contractData.raffleState)}
+            <div>
+              <h3 className="font-bold text-lg">Lottery Status: {contractData.raffleState == '0' ? "OPEN" : (contractData.raffleState == 1 ? "CALCULATING" : "VOTING")}</h3>
+              <p>{getStatusDescription(contractData.raffleState)}</p>
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <h3 className="font-bold text-lg mb-2">Time Remaining</h3>
+            {contractData.remaining_time ? (
+              <div className="grid grid-cols-4 gap-2 text-center">
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <span className="block text-2xl font-bold text-blue-800">
+                    {Math.floor(contractData.remaining_time / 86400)}
+                  </span>
+                  <span className="text-gray-600 text-sm">Days</span>
+                </div>
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <span className="block text-2xl font-bold text-blue-800">
+                    {Math.floor((contractData.remaining_time % 86400) / 3600)}
+                  </span>
+                  <span className="text-gray-600 text-sm">Hours</span>
+                </div>
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <span className="block text-2xl font-bold text-blue-800">
+                    {Math.floor((contractData.remaining_time % 3600) / 60)}
+                  </span>
+                  <span className="text-gray-600 text-sm">Minutes</span>
+                </div>
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <span className="block text-2xl font-bold text-blue-800">
+                    {Math.floor(contractData.remaining_time % 60)}
+                  </span>
+                  <span className="text-gray-600 text-sm">Seconds</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-600">Time information not available</p>
             )}
           </div>
         </div>
 
+
+        <div className="mb-6 rounded-lg flex items-center ">
+          <MoneyWaterfall money={contractData.balance} number={contractData.numberOfPlayers} price={contractData.entranceFee} />
+        </div>
         {/* Prize Pool Card */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
-          {/* <PiggyBankVisualization price={contractData.entranceFee} number={contractData.numberOfPlayers}></PiggyBankVisualization> */}
-          {/* <PiggyBankVisualization price = {contractData.entranceFee} number = {contractData.numberOfPlayers}></PiggyBankVisualization> */}
-          <MoneyWaterfall money={contractData.balance} number={contractData.numberOfPlayers} price={contractData.entranceFee} />
+
           <div className="bg-blue-800 text-white p-4">
             <h2 className="text-xl font-semibold">Current Prize Pool</h2>
           </div>
@@ -211,17 +309,6 @@ const RafflePage = () => {
           </div>
         </div>
 
-        {/* Raffle State Display
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
-          <div className="bg-blue-800 text-white p-4">
-            <h2 className="text-xl font-semibold">Raffle Status</h2>
-          </div>
-          <div className="p-6 text-center">
-            <span className={`text-lg font-bold px-4 py-2 rounded-lg ${contractData.raffleState === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-              {contractData.raffleState}
-            </span>
-          </div>*/}
-        {/* </div> */}
 
         {/* Buy Ticket & Info Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
