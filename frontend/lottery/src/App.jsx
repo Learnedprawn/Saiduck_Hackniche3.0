@@ -1,7 +1,4 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 
@@ -17,6 +14,8 @@ import { mainnet, polygon, optimism, arbitrum, base } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
+import Raffle from './pages/Raffle';
+import Navbar from './components/Navbar'
 
 
 const queryClient = new QueryClient();
@@ -49,7 +48,9 @@ function App() {
         <RainbowKitProvider theme={darkTheme()}>
           <div className="bg-white min-h-screen">
             <Navbar />
-
+            <Routes>
+              <Route path="/" element={<Raffle />} />
+            </Routes>
           </div>
         </RainbowKitProvider>
       </QueryClientProvider>
