@@ -74,6 +74,8 @@ const RafflePage = () => {
 
       // Clean up interval on component unmount or when raffle state changes
       return () => clearInterval(timerInterval);
+    } else {
+      setTimeRemaining(0);
     }
   }, [contractData.remaining_time, contractData.raffleState]);
 
@@ -85,7 +87,7 @@ const RafflePage = () => {
       // Create a new contract instance with the signer
       const contractInstance = new ethers.Contract(
         // import.meta.env.VITE_RAFFLE_CONTRACT_ADDRESS,
-        "0x0B306BF915C4d645ff596e518fAf3F9669b97016",
+        "0x04C89607413713Ec9775E14b954286519d836FEf",
         Raffle.abi,
         signer
       );
@@ -295,7 +297,7 @@ const RafflePage = () => {
           <div className="flex items-center space-x-4">
             <div className="flex items-center">
               <Ticket className="mr-1" size={16} />
-              <span>{contractData.userTickets.toString()} Tickets</span>
+              <span>{contractData.userTickets} Tickets</span>
             </div>
             <div className="flex items-center">
               <Wallet className="mr-1" size={16} />
