@@ -1,11 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { BellRing, Ticket, Trophy, Wallet, Clock, CheckCircle, UserPlus } from 'lucide-react';
-import PiggyBankVisualization from '../components/piggyBank/PiggyBank';
-import MoneyWaterfall from '../components/piggyBank/PiggyBank';
+import React, { useState, useEffect } from "react";
+import {
+  BellRing,
+  Ticket,
+  Trophy,
+  Wallet,
+  Clock,
+  CheckCircle,
+  UserPlus,
+} from "lucide-react";
+import PiggyBankVisualization from "../components/piggyBank/PiggyBank";
+import MoneyWaterfall from "../components/piggyBank/PiggyBank";
 import Raffle from "../../../../backend/out/Raffle.sol/Raffle.json";
-import { ethers } from 'ethers';
+import { ethers } from "ethers";
 import { useAccount } from "wagmi";
-
 
 // Mock Web3 connection - in a real app, you'd use ethers.js or web3.js
 // const mockContractData = {
@@ -19,7 +26,9 @@ import { useAccount } from "wagmi";
 
 const formatAddress = (address) => {
   if (!address) return "No winner yet";
-  return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+  return `${address.substring(0, 6)}...${address.substring(
+    address.length - 4
+  )}`;
 };
 
 const RafflePage = () => {
@@ -81,18 +90,22 @@ const RafflePage = () => {
         signer
       );
       setRaffleContract(contractInstance);
+      console.log(contractInstance);
     }
   }, []);
 
   useEffect(() => {
-
     const getRaffleDetails = async () => {
       const fee = await raffleContract.getEntranceFee();
-      setContractData((prev) => ({ ...prev, entranceFee: ethers.utils.formatEther(fee) }));
-
+      setContractData((prev) => ({
+        ...prev,
+        entranceFee: ethers.utils.formatEther(fee),
+      }));
       const players = await raffleContract.getNumberOfPlayers();
-      setContractData((prev) => ({ ...prev, numberOfPlayers: players.toString() }));
-
+      setContractData((prev) => ({
+        ...prev,
+        numberOfPlayers: players.toString(),
+      }));
       const winner = await raffleContract.getRecentWinner();
       setContractData((prev) => ({ ...prev, lastWinner: winner }));
 
@@ -102,28 +115,85 @@ const RafflePage = () => {
       const state = await raffleContract.getRaffleState();
       setContractData((prev) => ({ ...prev, raffleState: state }));
 
-      const remainingtime = await raffleContract.getTimeRemaining();
-      setContractData((prev) => ({ ...prev, remaining_time: remainingtime }));
-
       const interval = await raffleContract.getInterval();
       setContractData((prev) => ({ ...prev, interval_var: interval }));
 
       const last_ts = await raffleContract.getLastTimeStamp();
       setContractData((prev) => ({ ...prev, last_timestamp: last_ts }));
-      console.log("remianing time: " + remainingtime);
+
+      // const rem_time_var = await raffleContract.getTimeRemaining();
+      // setContractData((prev) => ({ ...prev, remaining_time: rem_time_var }));
+
+      // console.log("remaining_time: " + rem_time_var);
+
+      const currentTime = Math.floor(Date.now() / 1000); // Get current timestamp in seconds
+
+      const intervalNum = Number(interval); // Ensure it's a number
+      const lastTsNum = Number(last_ts); // Ensure it's a number
+      // const currentTime = Math.floor(Date.now() / 1000); // Convert to seconds
+
+      // const rem_time = intervalNum - (currentTime - lastTsNum);
+      // Calculate remaining time using modulo
+      const rem_time = intervalNum - ((currentTime - lastTsNum) % intervalNum);
+
+      console.log("CURRENT TIME: " + currentTime);
+      console.log("INTERVAL TIME: " + interval);
+      console.log("LAST TS: " + last_ts);
+      console.log("REMAINING TIME: " + rem_time);
+
+      // setContractData((prev) => ({ ...prev, remaining_time: rem_time > 0 ? rem_time : 0 }));
+      setContractData((prev) => ({
+        ...prev,
+        interval_var: intervalNum,
+        last_timestamp: lastTsNum,
+        remaining_time: Math.max(rem_time, 0) // Ensure it doesn't go negative 
+      }));
 
 
       // const balance = Number(players) * Number(fee);
+      const balance = Number(players) * Number(ethers.utils.formatEther(fee));
 
-      // setContractData((prev) => ({ ...prev, balance: balance.toString() }));
+      setContractData((prev) => ({ ...prev, balance: balance.toString() }));
       // console.log(contractData);
-    }
+    };
 
     if (raffleContract) {
       getRaffleDetails();
     }
   }, [raffleContract]);
 
+
+  // Replace your existing timeRemaining useEffect with this one
+  useEffect(() => {
+    // Only start the timer if we have valid data and the raffle is open
+    if (contractData.raffleState == '0') {
+      // Initialize the timer with the contract data when it first loads
+      if (contractData.remaining_time) {
+        setTimeRemaining(parseInt(contractData.remaining_time));
+      }
+
+      // Set up interval to count down every second
+      const timerInterval = setInterval(() => {
+        setTimeRemaining(prevTime => {
+          if (prevTime <= 0) {
+            // When timer reaches zero, calculate the new remaining time
+            const currentTime = Math.floor(Date.now() / 1000);
+            const intervalNum = Number(contractData.interval_var);
+            const lastTsNum = Number(contractData.last_timestamp);
+            const newRemTime = intervalNum - ((currentTime - lastTsNum) % intervalNum);
+
+            // Return the new calculated time
+            return Math.max(newRemTime, 0);
+          }
+          // Otherwise just decrement by 1 second
+          return prevTime - 1;
+        });
+      }, 1000);
+
+      // Clean up interval on component unmount or when raffle state changes
+      return () => clearInterval(timerInterval);
+    }
+  }, [contractData.raffleState, contractData.remaining_time, contractData.interval_var, contractData.last_timestamp]);
 
   useEffect(() => {
     console.log(contractData);
@@ -135,15 +205,18 @@ const RafflePage = () => {
 
     try {
       // This would be a real contract interaction in production
-      const tx = await raffleContract.enterRaffle({ value: ethers.utils.parseEther(contractData.entranceFee) }
-      );
+      const tx = await raffleContract.enterRaffle({
+        value: ethers.utils.parseEther(contractData.entranceFee),
+      });
       await tx.wait();
       // Update mock data after purchase
-      setContractData(prev => ({
+      setContractData((prev) => ({
         ...prev,
         numberOfPlayers: Number(prev.numberOfPlayers) + 1,
         userTickets: Number(prev.userTickets) + 1,
-        balance: (parseFloat(prev.balance) + parseFloat(prev.entranceFee)).toFixed(2)
+        balance: (
+          parseFloat(prev.balance) + parseFloat(prev.entranceFee)
+        ).toFixed(2),
       }));
 
       setTxStatus("Ticket purchased successfully!");
@@ -197,6 +270,19 @@ const RafflePage = () => {
     }
   };
 
+
+  const simulateUpKeep = async () => {
+    try {
+      const tx = await raffleContract.performUpkeep("0x");
+      const receipt = await tx.wait();
+
+      const event = receipt.events?.find(e => e.event === "RequestedRaffleWinner");
+      console.log(event.args[0].toString())
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Navbar */}
@@ -209,7 +295,7 @@ const RafflePage = () => {
           <div className="flex items-center space-x-4">
             <div className="flex items-center">
               <Ticket className="mr-1" size={16} />
-              <span>{contractData.userTickets} Tickets</span>
+              <span>{contractData.userTickets.toString()} Tickets</span>
             </div>
             <div className="flex items-center">
               <Wallet className="mr-1" size={16} />
@@ -223,7 +309,12 @@ const RafflePage = () => {
       <main className="container mx-auto px-4 py-8 flex-grow">
         {/* Status Messages */}
         {txStatus && (
-          <div className={`mb-6 p-4 rounded-lg ${txStatus.includes('Error') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+          <div
+            className={`mb-6 p-4 rounded-lg ${txStatus.includes("Error")
+              ? "bg-red-100 text-red-800"
+              : "bg-green-100 text-green-800"
+              }`}
+          >
             {txStatus}
           </div>
         )}
@@ -246,7 +337,7 @@ const RafflePage = () => {
         </div> */}
 
         {/* Raffle Status Banner */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className={`p-4 rounded-lg flex items-center ${getStatusBadgeClass(contractData.raffleState)}`}>
             {getStatusIcon(contractData.raffleState)}
             <div>
@@ -287,6 +378,50 @@ const RafflePage = () => {
               <p className="text-gray-600">Time information not available</p>
             )}
           </div>
+        </div> */}
+
+        {/* Raffle Status Banner */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className={`p-4 rounded-lg flex items-center ${getStatusBadgeClass(contractData.raffleState)}`}>
+            {getStatusIcon(contractData.raffleState)}
+            <div>
+              <h3 className="font-bold text-lg">Lottery Status: {contractData.raffleState == '0' ? "OPEN" : (contractData.raffleState == 1 ? "CALCULATING" : "VOTING")}</h3>
+              <p>{getStatusDescription(contractData.raffleState)}</p>
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <h3 className="font-bold text-lg mb-2">Time Remaining</h3>
+            {contractData.raffleState == '0' ? (
+              <div className="grid grid-cols-4 gap-2 text-center">
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <span className="block text-2xl font-bold text-blue-800">
+                    {Math.floor(timeRemaining / 86400)}
+                  </span>
+                  <span className="text-gray-600 text-sm">Days</span>
+                </div>
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <span className="block text-2xl font-bold text-blue-800">
+                    {Math.floor((timeRemaining % 86400) / 3600)}
+                  </span>
+                  <span className="text-gray-600 text-sm">Hours</span>
+                </div>
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <span className="block text-2xl font-bold text-blue-800">
+                    {Math.floor((timeRemaining % 3600) / 60)}
+                  </span>
+                  <span className="text-gray-600 text-sm">Minutes</span>
+                </div>
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <span className="block text-2xl font-bold text-blue-800">
+                    {Math.floor(timeRemaining % 60)}
+                  </span>
+                  <span className="text-gray-600 text-sm">Seconds</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-600">Timer paused - Raffle is {contractData.raffleState == '1' ? "CALCULATING" : "in VOTING stage"}</p>
+            )}
+          </div>
         </div>
 
 
@@ -321,17 +456,19 @@ const RafflePage = () => {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-gray-700 font-semibold">Entrance Fee</p>
-                  <p className="text-2xl font-bold">{contractData.entranceFee} ETH</p>
+                  <p className="text-2xl font-bold">
+                    {contractData.entranceFee} ETH
+                  </p>
                 </div>
                 <button
                   onClick={handleBuyTicket}
-                  disabled={isLoading || contractData.raffleState != '0'}
-                  className={`px-6 py-3 rounded-lg font-semibold ${isLoading || contractData.raffleState != '0'
-                    ? 'bg-gray-300 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  disabled={isLoading || contractData.raffleState != "0"}
+                  className={`px-6 py-3 rounded-lg font-semibold ${isLoading || contractData.raffleState != "0"
+                    ? "bg-gray-300 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700 text-white"
                     }`}
                 >
-                  {isLoading ? 'Processing...' : 'Buy Ticket'}
+                  {isLoading ? "Processing..." : "Buy Ticket"}
                 </button>
               </div>
               {contractData.raffleState !== "OPEN" && (
@@ -357,7 +494,10 @@ const RafflePage = () => {
             </div>
           </div>
         </div>
-      </main >
+        <button className="bg-blue-800 text-white py-2 px-4 rounded-lg font-semibold" onClick={() => simulateUpKeep()}>
+          upkeep
+        </button>
+      </main>
 
       {/* Footer */}
       < footer className="bg-gray-800 text-white py-4 text-center" >

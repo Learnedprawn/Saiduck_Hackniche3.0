@@ -43,4 +43,10 @@ contract DeployRaffle is Script {
         addConsumer.addConsumer(address(raffle), config.vrfCoordinatorV2_5, config.subscriptionId, config.account);
         return (raffle, helperConfig);
     }
+
+    function simulatePerformUpkeep(address raffle) public {
+
+        Raffle( raffle ).performUpkeep("");
+
+    }
 }

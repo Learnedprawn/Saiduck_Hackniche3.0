@@ -105,6 +105,7 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
             revert Raffle__RaffleNotOpen();
         }
         s_players.push(payable(msg.sender));
+        s_playerEntries[msg.sender]++;
         // Emit an event when we update a dynamic array or mapping
         // Named events with the function name reversed
         emit RaffleEnter(msg.sender);
@@ -142,13 +143,9 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     function performUpkeep(bytes calldata /* performData */) external override {
         (bool upkeepNeeded, ) = checkUpkeep("");
         // require(upkeepNeeded, "Upkeep not needed");
-        if (!upkeepNeeded) {
-            revert Raffle__UpkeepNotNeeded(
-                address(this).balance,
-                s_players.length,
-                uint256(s_raffleState)
-            );
-        }
+        // if (!upkeepNeeded) {
+        //     revert Raffle__UpkeepNotNeeded(address(this).balance, s_players.length, uint256(s_raffleState));
+        // }
 
         s_raffleState = RaffleState.CALCULATING;
 
@@ -238,6 +235,10 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     }
 
     function getTimeRemaining() public view returns (uint256) {
+        // return int256(i_interval - (block.timestamp - s_lastTimeStamp));
+        if (block.timestamp >= s_lastTimeStamp + i_interval) {
+            return 0;
+        }
         return i_interval - (block.timestamp - s_lastTimeStamp);
     }
 

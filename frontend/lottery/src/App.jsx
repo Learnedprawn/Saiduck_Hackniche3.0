@@ -18,6 +18,7 @@ import RafflePage from './pages/RafflePage';
 import Navbar from './components/Navbar'
 import Homepage from './pages/Homepage';
 import RaffleFactory from './pages/RaffleFactory';
+import AddRaffel from './pages/Admin';
 
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ function App() {
               {/* <Route path="/raffle" element={<Raffle />} /> */}
               <Route path="/raffle" element={<RafflePage />} />
               <Route path="/rafflefactory" element={<RaffleFactory />} />
+              <Route path="/addrafel" element={<AddRaffel />} />
             </Routes>
           </div>
         </RainbowKitProvider>
