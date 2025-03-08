@@ -53,11 +53,13 @@ const RafflePage = () => {
 
       // Create a new contract instance with the signer
       const contractInstance = new ethers.Contract(
-        import.meta.env.VITE_RAFFLE_CONTRACT_ADDRESS,
+        // import.meta.env.VITE_RAFFLE_CONTRACT_ADDRESS,
+        "0xc6e7DF5E7b4f2A278906862b61205850344D4e7d",
         Raffle.abi,
         signer
       );
       setRaffleContract(contractInstance);
+      console.log(contractInstance);
     }
   }, []);
 
@@ -107,8 +109,8 @@ const RafflePage = () => {
       // Update mock data after purchase
       setContractData((prev) => ({
         ...prev,
-        numberOfPlayers: prev.numberOfPlayers + 1,
-        userTickets: prev.userTickets + 1,
+        numberOfPlayers: Number(prev.numberOfPlayers) + 1,
+        userTickets: Number(prev.userTickets) + 1,
         balance: (
           parseFloat(prev.balance) + parseFloat(prev.entranceFee)
         ).toFixed(2),
