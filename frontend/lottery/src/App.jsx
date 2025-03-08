@@ -16,6 +16,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import Raffle from './pages/Raffle';
 import Navbar from './components/Navbar'
+import Homepage from './pages/Homepage';
 
 
 const queryClient = new QueryClient();
@@ -49,7 +50,8 @@ function App() {
           <div className="bg-white min-h-screen">
             <Navbar />
             <Routes>
-              <Route path="/" element={<Raffle />} />
+              <Route path="/" element={<Homepage />} />
+              <Route path="/raffle" element={<Raffle />} />
             </Routes>
           </div>
         </RainbowKitProvider>

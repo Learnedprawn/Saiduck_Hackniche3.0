@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { BellRing, Ticket, Trophy, Wallet } from 'lucide-react';
+import { useRaffleContract, buyTicket, getFee } from "../contractsInteractions/RaffleInteractions";
+import { ethers } from 'ethers';
+// import RaffleAbi from "../../../../backend/out/Raffle.sol/Raffle.json";
 
 // Mock Web3 connection - in a real app, you'd use ethers.js or web3.js
 const mockContractData = {
-  entranceFee: "0.01",
+  entranceFee: 12,
   numberOfPlayers: 12,
   lastWinner: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
   userTickets: 2,
@@ -23,10 +26,23 @@ const Raffle = () => {
   const [txStatus, setTxStatus] = useState(null);
 
   // Simulate loading contract data
+
+  const raffleContract = useRaffleContract();
+
   useEffect(() => {
-    // In a real app, this would fetch data from the blockchain
-    console.log("Fetching lottery data...");
-  }, []);
+    const getEntranceFee = async () => {
+      if (!raffleContract) return;
+
+      try {
+        const fee = await getFee();
+        console.log(fee);
+      } catch (error) {
+        console.error("Error fetching entrance fee:", error);
+      }
+    };
+
+    getEntranceFee();
+  }, [raffleContract]);
 
   const handleBuyTicket = async () => {
     setIsLoading(true);
@@ -116,8 +132,8 @@ const Raffle = () => {
                   onClick={handleBuyTicket}
                   disabled={isLoading || contractData.raffleState !== "OPEN"}
                   className={`px-6 py-3 rounded-lg font-semibold ${isLoading || contractData.raffleState !== "OPEN"
-                      ? 'bg-gray-300 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    ? 'bg-gray-300 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
                     }`}
                 >
                   {isLoading ? 'Processing...' : 'Buy Ticket'}
