@@ -61,6 +61,8 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     address private s_recentWinner;
     address payable[] private s_players;
     RaffleState private s_raffleState;
+    
+    mapping(address player => uint256 entries) public s_playerEntries;
 
     /* Events */
     event RequestedRaffleWinner(uint256 indexed requestId);
@@ -220,5 +222,9 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
 
     function getNumberOfPlayers() public view returns (uint256) {
         return s_players.length;
+    }
+
+    function getTimeRemaining() public view returns (uint256) {
+        return i_interval - (block.timestamp - s_lastTimeStamp);
     }
 }
