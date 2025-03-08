@@ -14,7 +14,7 @@ import { mainnet, polygon, optimism, arbitrum, base } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
-import Raffle from './pages/Raffle';
+import RafflePage from './pages/RafflePage';
 import Navbar from './components/Navbar'
 import RaffleFactory from './pages/RaffleFactory';
 
@@ -50,7 +50,7 @@ function App() {
           <div className="bg-white min-h-screen">
             <Navbar />
             <Routes>
-            <Route path="/:id" element={<Raffle />} />
+              <Route path="/:id" element={<RafflePage />} />
               <Route path="/rafflefactory" element={<RaffleFactory />} />
             </Routes>
           </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BellRing, Ticket, Trophy, Wallet, Clock, CheckCircle, UserPlus } from 'lucide-react';
 import PiggyBankVisualization from '../components/piggyBank/PiggyBank';
+import MoneyWaterfall from '../components/piggyBank/PiggyBank';
 
 // Mock Web3 connection - in a real app, you'd use ethers.js or web3.js
 const mockContractData = {
@@ -17,7 +18,7 @@ const formatAddress = (address) => {
   return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
 };
 
-const Raffle = () => {
+const RafflePage = () => {
   const [contractData, setContractData] = useState(mockContractData);
   const [isLoading, setIsLoading] = useState(false);
   const [userAddress, setUserAddress] = useState("0x123...4567");
@@ -141,11 +142,13 @@ const Raffle = () => {
 
         {/* Prize Pool Card */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
-          <PiggyBankVisualization price={contractData.entranceFee} number={contractData.numberOfPlayers}></PiggyBankVisualization>
+          {/* <PiggyBankVisualization price={contractData.entranceFee} number={contractData.numberOfPlayers}></PiggyBankVisualization> */}
+          {/* <PiggyBankVisualization price = {contractData.entranceFee} number = {contractData.numberOfPlayers}></PiggyBankVisualization> */}
+          <MoneyWaterfall money={contractData.balance} number={contractData.numberOfPlayers} price={contractData.entranceFee} />
           <div className="bg-blue-800 text-white p-4">
             <h2 className="text-xl font-semibold">Current Prize Pool</h2>
           </div>
-          <div className="p-6 text-center">
+          {/* <div className="p-6 text-center">
             <div className="text-4xl font-bold text-blue-800 mb-2">
               {contractData.balance} ETH
             </div>
@@ -164,8 +167,8 @@ const Raffle = () => {
             <span className={`text-lg font-bold px-4 py-2 rounded-lg ${contractData.raffleState === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
               {contractData.raffleState}
             </span>
-          </div>
-        </div> */}
+          </div>*/}
+        </div>
 
         {/* Buy Ticket & Info Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -225,4 +228,4 @@ const Raffle = () => {
   );
 };
 
-export default Raffle;
+export default RafflePage;
