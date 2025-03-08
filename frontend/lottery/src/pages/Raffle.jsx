@@ -31,11 +31,11 @@ const Raffle = () => {
   const handleBuyTicket = async () => {
     setIsLoading(true);
     setTxStatus("Processing your ticket purchase...");
-    
+
     try {
       // This would be a real contract interaction in production
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       // Update mock data after purchase
       setContractData(prev => ({
         ...prev,
@@ -43,7 +43,7 @@ const Raffle = () => {
         userTickets: prev.userTickets + 1,
         balance: (parseFloat(prev.balance) + parseFloat(prev.entranceFee)).toFixed(2)
       }));
-      
+
       setTxStatus("Ticket purchased successfully!");
     } catch (error) {
       setTxStatus(`Error: ${error.message}`);
@@ -60,7 +60,7 @@ const Raffle = () => {
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center">
             <Trophy className="mr-2" />
-            <h1 className="text-xl font-bold">LOTTO LOTTERY</h1>
+            <h1 className="text-xl font-bold">Raffle LotteryX</h1>
           </div>
           <div className="flex items-center space-x-4">
             <div className="flex items-center">
@@ -112,14 +112,13 @@ const Raffle = () => {
                   <p className="text-gray-700 font-semibold">Entrance Fee</p>
                   <p className="text-2xl font-bold">{contractData.entranceFee} ETH</p>
                 </div>
-                <button 
+                <button
                   onClick={handleBuyTicket}
                   disabled={isLoading || contractData.raffleState !== "OPEN"}
-                  className={`px-6 py-3 rounded-lg font-semibold ${
-                    isLoading || contractData.raffleState !== "OPEN" 
-                      ? 'bg-gray-300 cursor-not-allowed' 
+                  className={`px-6 py-3 rounded-lg font-semibold ${isLoading || contractData.raffleState !== "OPEN"
+                      ? 'bg-gray-300 cursor-not-allowed'
                       : 'bg-blue-600 hover:bg-blue-700 text-white'
-                  }`}
+                    }`}
                 >
                   {isLoading ? 'Processing...' : 'Buy Ticket'}
                 </button>
