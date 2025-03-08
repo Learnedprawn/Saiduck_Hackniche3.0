@@ -81,9 +81,9 @@ const RafflePage = () => {
       setContractData((prev) => ({ ...prev, userTickets: tickets.toString() }));
       const state = await raffleContract.getRaffleState();
       setContractData((prev) => ({ ...prev, raffleState: state }));
-      // const balance = Number(players) * Number(fee);
+      const balance = Number(players) * Number(ethers.utils.formatEther(fee));
 
-      // setContractData((prev) => ({ ...prev, balance: balance.toString() }));
+      setContractData((prev) => ({ ...prev, balance: balance.toString() }));
       // console.log(contractData);
     };
 
@@ -166,6 +166,19 @@ const RafflePage = () => {
         return "Lottery status unavailable.";
     }
   };
+
+
+  const simulateUpKeep = async () => {
+    try {
+      const tx = await raffleContract.performUpkeep("0x");
+      const receipt = await tx.wait();
+
+      const event = receipt.events?.find(e => e.event === "RequestedRaffleWinner");
+      console.log(event.args[0].toString())
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -314,6 +327,9 @@ const RafflePage = () => {
             </div>
           </div>
         </div>
+        <button className="bg-blue-800 text-white py-2 px-4 rounded-lg font-semibold" onClick={() => simulateUpKeep()}>
+          upkeep
+        </button>
       </main>
 
       {/* Footer */}
