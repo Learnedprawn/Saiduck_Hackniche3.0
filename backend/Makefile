@@ -39,12 +39,17 @@ ifeq ($(findstring --network sepolia,$(ARGS)),--network sepolia)
 	NETWORK_ARGS := --rpc-url $(SEPOLIA_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(ETHERSCAN_API_KEY) -vvvv
 endif
 
-deploy:
-	@forge script script/DeployRaffle.s.sol:DeployRaffle --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast
+# deploy:
+# 	@forge script script/DeployRaffle.s.sol:DeployRaffle --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast
 
-# this will give error
-deployOld: 
+deploy: 
 	@forge script script/DeployRaffle.s.sol:DeployRaffle $(NETWORK_ARGS)
+
+# simulatePerformUpkeep: 
+# 	@forge script script/DeployRaffle.s.sol:DeployRaffle --sig "simulatePerformUpkeep(address)"  $(NETWORK_ARGS)
+
+# forge script script/DeployRaffle.s.sol:DeployRaffle --sig "simulatePerformKeep(address)" <RAFFLE_CONTRACT_ADDRESS> --fork-url <RPC_URL> --broadcast
+
 
 createSubscription:
 	@forge script script/Interactions.s.sol:CreateSubscription $(NETWORK_ARGS)
