@@ -78,4 +78,7 @@ deploy-sepolia:
 		--verify \
 		--etherscan-api-key $(ETHERSCAN_API_KEY) -vvvv
 
+deploy-zk:
+    @forge create src/Raffle.sol:Raffle --rpc-url $(ETH_RPC_URL) --private-key $(PRIVATE_KEY) --zksync
+
 

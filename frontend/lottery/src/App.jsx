@@ -43,7 +43,7 @@ const config = getDefaultConfig({
   ssr: false, // If your dApp uses server side rendering (SSR)
 });
 function App() {
-  const [count, setCount] = useState(0)
+  // const [count, setCount] = useState(0)
 
   return (
     <WagmiProvider config={config}>

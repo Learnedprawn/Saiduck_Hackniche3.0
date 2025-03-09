@@ -15,7 +15,7 @@ const Navbar = () => {
               <Layers className="w-6 h-6" />
             </div>
             <span className="ml-3 text-xl font-bold text-gray-900">
-              LOTTO LOTTERY
+              RaffleChain
             </span>
           </div>
 
