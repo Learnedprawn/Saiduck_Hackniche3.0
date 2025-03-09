@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "framer-motion": "^12.4.10",
     "lottie-react": "^2.4.1"
   }
 }

@@ -13,6 +13,8 @@ import MoneyWaterfall from "../components/piggyBank/PiggyBank";
 import Raffle from "../../../../backend/out/Raffle.sol/Raffle.json";
 import { ethers } from "ethers";
 import { useAccount } from "wagmi";
+import WinnerAlert from "../components/winner/winnerAlert";
+import Winner from "../components/winner/winner";
 
 // Mock Web3 connection - in a real app, you'd use ethers.js or web3.js
 // const mockContractData = {
@@ -42,7 +44,8 @@ const RafflePage = () => {
     balance: '',
     remaining_time: '',
     interval_var: '',
-    last_timestamp: ''
+    last_timestamp: '',
+    block_timestamp: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [userAddress, setUserAddress] = useState("0x123...4567");
@@ -53,6 +56,13 @@ const RafflePage = () => {
   // const [lastTimeStamp, setLastTimeStamp] = useState(null);
 
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [showModal, setShowModal] = useState(true);
+
+  useEffect(() => {
+    if (address === contractData.lastWinner) {
+      setShowModal(true);
+    }
+  }, [contractData.lastWinner, address]);
 
   // Add this useEffect to update the timer every second
   useEffect(() => {
@@ -87,7 +97,7 @@ const RafflePage = () => {
       // Create a new contract instance with the signer
       const contractInstance = new ethers.Contract(
         // import.meta.env.VITE_RAFFLE_CONTRACT_ADDRESS,
-        "0x04C89607413713Ec9775E14b954286519d836FEf",
+        "0x36b58F5C1969B7b6591D752ea6F5486D069010AB",
         Raffle.abi,
         signer
       );
@@ -108,8 +118,8 @@ const RafflePage = () => {
         ...prev,
         numberOfPlayers: players.toString(),
       }));
-      const winner = await raffleContract.getRecentWinner();
-      setContractData((prev) => ({ ...prev, lastWinner: winner }));
+      const last_winner = await raffleContract.getRecentWinner();
+      setContractData((prev) => ({ ...prev, lastWinner: last_winner }));
 
       const tickets = await raffleContract.getPlayerEntries(address);
       setContractData((prev) => ({ ...prev, userTickets: tickets.toString() }));
@@ -123,22 +133,24 @@ const RafflePage = () => {
       const last_ts = await raffleContract.getLastTimeStamp();
       setContractData((prev) => ({ ...prev, last_timestamp: last_ts }));
 
+      const block_ts = await raffleContract.getBlockTimestamp();
+      setContractData((prev) => ({ ...prev, block_timestamp: block_ts }));
+
       // const rem_time_var = await raffleContract.getTimeRemaining();
       // setContractData((prev) => ({ ...prev, remaining_time: rem_time_var }));
 
       // console.log("remaining_time: " + rem_time_var);
 
-      const currentTime = Math.floor(Date.now() / 1000); // Get current timestamp in seconds
-
+      // const currentTime = Math.floor(Date.now() / 1000); // Get current timestamp in seconds
+      const blockTime = Number(block_ts); // Get current timestamp in seconds
       const intervalNum = Number(interval); // Ensure it's a number
       const lastTsNum = Number(last_ts); // Ensure it's a number
-      // const currentTime = Math.floor(Date.now() / 1000); // Convert to seconds
 
       // const rem_time = intervalNum - (currentTime - lastTsNum);
       // Calculate remaining time using modulo
-      const rem_time = intervalNum - ((currentTime - lastTsNum) % intervalNum);
+      const rem_time = intervalNum - ((blockTime - lastTsNum) % intervalNum);
 
-      console.log("CURRENT TIME: " + currentTime);
+      console.log("BLOCK TIME: " + blockTime);
       console.log("INTERVAL TIME: " + interval);
       console.log("LAST TS: " + last_ts);
       console.log("REMAINING TIME: " + rem_time);
@@ -272,18 +284,32 @@ const RafflePage = () => {
     }
   };
 
-
   const simulateUpKeep = async () => {
     try {
+      if (!raffleContract) {
+        console.log("Raffle contract not initialized");
+        return;
+      }
+  
       const tx = await raffleContract.performUpkeep("0x");
-      const receipt = await tx.wait();
-
-      const event = receipt.events?.find(e => e.event === "RequestedRaffleWinner");
-      console.log(event.args[0].toString())
+      await tx.wait();
+  
+      // Listen for WinnerPicked event
+      raffleContract.once("WinnerPicked", async (winner) => {
+        console.log("Winner selected:", winner);
+        
+        // Fetch and update the winner in UI
+        const updatedWinner = await raffleContract.getRecentWinner();
+        setContractData((prev) => ({ ...prev, lastWinner: updatedWinner }));
+      });
+  
     } catch (error) {
-      console.log(error);
+      console.error("Error performing upkeep:", error);
     }
   }
+  const handleModalClose = () => {
+    setShowModal(false);
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
@@ -307,6 +333,11 @@ const RafflePage = () => {
         </div>
       </nav>
 
+      {/* <div className="relative">
+            <WinnerAlert show={showModal} onClose={() => setShowModal(false)} />
+            <h1 className="text-3xl font-bold">Welcome to the Raffle!</h1>
+          </div> */}
+
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 flex-grow">
         {/* Status Messages */}
@@ -321,66 +352,7 @@ const RafflePage = () => {
           </div>
         )}
 
-        {/* Raffle Status Banner */}
-        {/* <div grid grid-cols-1 md:grid-cols-2 gap-6>
-          <div className={`mb-6 p-4 rounded-lg flex items-center ${getStatusBadgeClass(contractData.raffleState)}`}>
-            {getStatusIcon(contractData.raffleState)}
-            <div>
-              <h3 className="font-bold text-lg">Lottery Status: {contractData.raffleState == '0' ? "open" : (contractData.raffleState == 1 ? "CALCULATING" : "VOTING")}</h3>
-              <p>{getStatusDescription(contractData.raffleState)}</p>
-              {contractData.raffleState === "OPEN" && contractData.timeRemaining && (
-                <p className="mt-1 font-medium">Time remaining: {contractData.timeRemaining}</p>
-              )}
-            </div>
-          </div>
-          <div className="mb-6 rounded-lg flex items-center ">
-            implement the counter timer based on timestamp here
-          </div>
-        </div> */}
 
-        {/* Raffle Status Banner */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div className={`p-4 rounded-lg flex items-center ${getStatusBadgeClass(contractData.raffleState)}`}>
-            {getStatusIcon(contractData.raffleState)}
-            <div>
-              <h3 className="font-bold text-lg">Lottery Status: {contractData.raffleState == '0' ? "OPEN" : (contractData.raffleState == 1 ? "CALCULATING" : "VOTING")}</h3>
-              <p>{getStatusDescription(contractData.raffleState)}</p>
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <h3 className="font-bold text-lg mb-2">Time Remaining</h3>
-            {contractData.remaining_time ? (
-              <div className="grid grid-cols-4 gap-2 text-center">
-                <div className="bg-blue-100 p-3 rounded-lg">
-                  <span className="block text-2xl font-bold text-blue-800">
-                    {Math.floor(contractData.remaining_time / 86400)}
-                  </span>
-                  <span className="text-gray-600 text-sm">Days</span>
-                </div>
-                <div className="bg-blue-100 p-3 rounded-lg">
-                  <span className="block text-2xl font-bold text-blue-800">
-                    {Math.floor((contractData.remaining_time % 86400) / 3600)}
-                  </span>
-                  <span className="text-gray-600 text-sm">Hours</span>
-                </div>
-                <div className="bg-blue-100 p-3 rounded-lg">
-                  <span className="block text-2xl font-bold text-blue-800">
-                    {Math.floor((contractData.remaining_time % 3600) / 60)}
-                  </span>
-                  <span className="text-gray-600 text-sm">Minutes</span>
-                </div>
-                <div className="bg-blue-100 p-3 rounded-lg">
-                  <span className="block text-2xl font-bold text-blue-800">
-                    {Math.floor(contractData.remaining_time % 60)}
-                  </span>
-                  <span className="text-gray-600 text-sm">Seconds</span>
-                </div>
-              </div>
-            ) : (
-              <p className="text-gray-600">Time information not available</p>
-            )}
-          </div>
-        </div> */}
 
         {/* Raffle Status Banner */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -506,6 +478,30 @@ const RafflePage = () => {
         <p>© 2025 LOTTO LOTTERY. All rights reserved.</p>
         <p className="text-sm text-gray-400 mt-1">Smart Contract Powered by Chainlink VRF</p>
       </ footer>
+
+      {showModal && (
+        <div
+          className="fixed top-0 left-0 w-full h-full bg-black opacity-50"
+          onClick={handleModalClose}
+        >
+          <Winner />
+          <div
+            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-lg shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-2xl font-bold">You Won the Lottery!</h2>
+            <p className="text-lg">Congratulations! You are the lucky winner.</p>
+
+            <button
+              className="bg-blue-800 text-white py-2 px-4 rounded-lg font-semibold"
+              onClick={handleModalClose}
+            >
+              <BellRing size={16} className="mr-1" />
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div >
   );
 };
