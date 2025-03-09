@@ -48,7 +48,7 @@ const RafflePage = () => {
     block_timestamp: ''
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [userAddress, setUserAddress] = useState("0x123...4567");
+  const [userAddress, setUserAddress] = useState(address);
   const [txStatus, setTxStatus] = useState(null);
   const [raffleContract, setRaffleContract] = useState(null);
   // const [remainingTime, setRemainingTime] = useState(null);
@@ -56,7 +56,7 @@ const RafflePage = () => {
   // const [lastTimeStamp, setLastTimeStamp] = useState(null);
 
   const [timeRemaining, setTimeRemaining] = useState(0);
-  const [showModal, setShowModal] = useState(true);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     if (address === contractData.lastWinner) {
@@ -97,7 +97,7 @@ const RafflePage = () => {
       // Create a new contract instance with the signer
       const contractInstance = new ethers.Contract(
         // import.meta.env.VITE_RAFFLE_CONTRACT_ADDRESS,
-        "0x36b58F5C1969B7b6591D752ea6F5486D069010AB",
+        "0x5E97EaD8149761585a7176E59b18786063e63be5",
         Raffle.abi,
         signer
       );
@@ -133,16 +133,16 @@ const RafflePage = () => {
       const last_ts = await raffleContract.getLastTimeStamp();
       setContractData((prev) => ({ ...prev, last_timestamp: last_ts }));
 
-      const block_ts = await raffleContract.getBlockTimestamp();
-      setContractData((prev) => ({ ...prev, block_timestamp: block_ts }));
+      // const block_ts = await raffleContract.getBlockTimeStamp();
+      // setContractData((prev) => ({ ...prev, block_timestamp: block_ts }));
 
       // const rem_time_var = await raffleContract.getTimeRemaining();
       // setContractData((prev) => ({ ...prev, remaining_time: rem_time_var }));
 
       // console.log("remaining_time: " + rem_time_var);
 
-      // const currentTime = Math.floor(Date.now() / 1000); // Get current timestamp in seconds
-      const blockTime = Number(block_ts); // Get current timestamp in seconds
+      const currentTime = Math.floor(Date.now() / 1000); // Get current timestamp in seconds
+      const blockTime = Number(currentTime); // Get current timestamp in seconds
       const intervalNum = Number(interval); // Ensure it's a number
       const lastTsNum = Number(last_ts); // Ensure it's a number
 
@@ -166,6 +166,8 @@ const RafflePage = () => {
 
       // const balance = Number(players) * Number(fee);
       const balance = Number(players) * Number(ethers.utils.formatEther(fee));
+
+      console.log("BALANCE: " + balance);
 
       setContractData((prev) => ({ ...prev, balance: balance.toString() }));
       // console.log(contractData);
@@ -290,19 +292,19 @@ const RafflePage = () => {
         console.log("Raffle contract not initialized");
         return;
       }
-  
+
       const tx = await raffleContract.performUpkeep("0x");
       await tx.wait();
-  
+
       // Listen for WinnerPicked event
       raffleContract.once("WinnerPicked", async (winner) => {
         console.log("Winner selected:", winner);
-        
+
         // Fetch and update the winner in UI
         const updatedWinner = await raffleContract.getRecentWinner();
         setContractData((prev) => ({ ...prev, lastWinner: updatedWinner }));
       });
-  
+
     } catch (error) {
       console.error("Error performing upkeep:", error);
     }
@@ -448,7 +450,7 @@ const RafflePage = () => {
               {contractData.raffleState !== "OPEN" && (
                 <div className="text-yellow-600 text-sm mt-2 flex items-center">
                   <BellRing size={16} className="mr-1" />
-                  Raffle is currently in calculation mode. Please wait.
+                  {getStatusDescription(contractData.raffleState)}
                 </div>
               )}
             </div>

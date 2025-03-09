@@ -35,11 +35,23 @@ const Anvil = {
   },
 };
 
+const Sepolia = {
+  id: 11155111,
+  name: "Sepolia",
+  iconUrl:
+    "https://pbs.twimg.com/media/F28AbJwWAAMe4tD?format=jpg&name=large",
+  iconBackground: "#fff",
+  nativeCurrency: { name: "Sepolia", symbol: "ETH", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["https://eth-sepolia.g.alchemy.com/v2/c_3aKzrr1TsioNKfgm0GpBXkr5lr5I7t"] },
+  },
+};
+
 
 const config = getDefaultConfig({
   appName: "My RainbowKit App",
   projectId: "YOUR_PROJECT_ID",
-  chains: [mainnet, polygon, optimism, arbitrum, base, Anvil],
+  chains: [mainnet, polygon, optimism, arbitrum, base, Anvil, Sepolia],
   ssr: false, // If your dApp uses server side rendering (SSR)
 });
 function App() {
