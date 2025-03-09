@@ -245,4 +245,10 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     function getPlayerEntries(address player) public view returns (uint256) {
         return s_playerEntries[player];
     }
+
+    function getBlockTimeStamp() public view returns (uint256) {
+        return block.timestamp;
+    }
+
+    
 }
