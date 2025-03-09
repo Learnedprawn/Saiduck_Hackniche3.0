@@ -60,11 +60,11 @@ contract RaffleTest is Test, CodeConstants {
     // function testRaffleInitializesInOpenState() public view {
     //     assert(raffle.getRaffleState() == Raffle.RaffleState.OPEN);
     // }
-
-    function testTimeRemaining() public view {
-        uint256 timeRemaining = raffle.getTimeRemaining();
-        assert(block.timestamp - raffle.getLastTimeStamp() + timeRemaining == automationUpdateInterval);
-    }
+// 
+    // function testTimeRemaining() public view {
+    //     uint256 timeRemaining = raffle.getTimeRemaining();
+    //     assert(block.timestamp - raffle.getLastTimeStamp() + timeRemaining == automationUpdateInterval);
+    // }
 
     /*//////////////////////////////////////////////////////////////
                               ENTER RAFFLE

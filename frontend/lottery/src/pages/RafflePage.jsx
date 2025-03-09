@@ -87,7 +87,7 @@ const RafflePage = () => {
       // Create a new contract instance with the signer
       const contractInstance = new ethers.Contract(
         // import.meta.env.VITE_RAFFLE_CONTRACT_ADDRESS,
-        "0x04C89607413713Ec9775E14b954286519d836FEf",
+        "0x21dF544947ba3E8b3c32561399E88B52Dc8b2823", 
         Raffle.abi,
         signer
       );
