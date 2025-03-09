@@ -18,7 +18,7 @@ import RafflePage from './pages/RafflePage';
 import Navbar from './components/Navbar'
 import Homepage from './pages/Homepage';
 import RaffleFactory from './pages/RaffleFactory';
-import AddRaffel from './pages/Admin';
+import AddRaffle from './pages/Admin';
 
 
 const queryClient = new QueryClient();
@@ -43,7 +43,7 @@ const config = getDefaultConfig({
   ssr: false, // If your dApp uses server side rendering (SSR)
 });
 function App() {
-  const [count, setCount] = useState(0)
+  // const [count, setCount] = useState(0)
 
   return (
     <WagmiProvider config={config}>
@@ -56,7 +56,7 @@ function App() {
               {/* <Route path="/raffle" element={<Raffle />} /> */}
               <Route path="/raffle" element={<RafflePage />} />
               <Route path="/rafflefactory" element={<RaffleFactory />} />
-              <Route path="/addrafel" element={<AddRaffel />} />
+              <Route path="/addraffle" element={<AddRaffle />} />
             </Routes>
           </div>
         </RainbowKitProvider>

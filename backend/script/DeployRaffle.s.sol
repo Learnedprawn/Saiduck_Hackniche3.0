@@ -44,9 +44,4 @@ contract DeployRaffle is Script {
         return (raffle, helperConfig);
     }
 
-    function simulatePerformUpkeep(address raffle) public {
-
-        Raffle( raffle ).performUpkeep("");
-
-    }
 }

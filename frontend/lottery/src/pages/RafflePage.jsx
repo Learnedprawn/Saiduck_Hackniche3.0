@@ -284,16 +284,27 @@ const RafflePage = () => {
     }
   };
 
-
   const simulateUpKeep = async () => {
     try {
+      if (!raffleContract) {
+        console.log("Raffle contract not initialized");
+        return;
+      }
+  
       const tx = await raffleContract.performUpkeep("0x");
-      const receipt = await tx.wait();
-
-      const event = receipt.events?.find(e => e.event === "RequestedRaffleWinner");
-      console.log(event.args[0].toString())
+      await tx.wait();
+  
+      // Listen for WinnerPicked event
+      raffleContract.once("WinnerPicked", async (winner) => {
+        console.log("Winner selected:", winner);
+        
+        // Fetch and update the winner in UI
+        const updatedWinner = await raffleContract.getRecentWinner();
+        setContractData((prev) => ({ ...prev, lastWinner: updatedWinner }));
+      });
+  
     } catch (error) {
-      console.log(error);
+      console.error("Error performing upkeep:", error);
     }
   }
   const handleModalClose = () => {

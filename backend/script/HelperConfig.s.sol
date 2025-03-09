@@ -16,6 +16,7 @@ abstract contract CodeConstants {
     uint256 public constant ETH_SEPOLIA_CHAIN_ID = 11155111;
     uint256 public constant ETH_MAINNET_CHAIN_ID = 1;
     uint256 public constant LOCAL_CHAIN_ID = 31337;
+    uint256 public constant ZK_SYNC_ID = 260;
 }
 
 contract HelperConfig is CodeConstants, Script {
@@ -49,8 +50,9 @@ contract HelperConfig is CodeConstants, Script {
                                FUNCTIONS
     //////////////////////////////////////////////////////////////*/
     constructor() {
-        networkConfigs[ETH_SEPOLIA_CHAIN_ID] = getSepoliaEthConfig();
-        networkConfigs[ETH_MAINNET_CHAIN_ID] = getMainnetEthConfig();
+        // networkConfigs[ETH_SEPOLIA_CHAIN_ID] = getSepoliaEthConfig();
+        // networkConfigs[ETH_MAINNET_CHAIN_ID] = getMainnetEthConfig();
+        networkConfigs[ZK_SYNC_ID] = getOrCreateZKSyncConfig();
         // Note: We skip doing the local config
     }
 
@@ -87,14 +89,14 @@ contract HelperConfig is CodeConstants, Script {
 
     function getSepoliaEthConfig() public pure returns (NetworkConfig memory sepoliaNetworkConfig) {
         sepoliaNetworkConfig = NetworkConfig({
-            subscriptionId: 0, // If left as 0, our scripts will create one!
+            subscriptionId: 59595786538584910766962765315250714841698807357771769082331921027063469568633, // If left as 0, our scripts will create one!
             gasLane: 0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae,
-            automationUpdateInterval: 30, // 30 seconds
+            automationUpdateInterval: 120, // 30 seconds
             raffleEntranceFee: 0.01 ether,
             callbackGasLimit: 500000, // 500,000 gas
             vrfCoordinatorV2_5: 0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B,
             link: 0x779877A7B0D9E8603169DdbD7836e478b4624789,
-            account: 0x643315C9Be056cDEA171F4e7b2222a4ddaB9F88D
+            account: 0x115Fa80d1D00C38D88D2c024fe5C6f9d5ca34bE3 
         });
     }
 
@@ -116,7 +118,7 @@ contract HelperConfig is CodeConstants, Script {
         localNetworkConfig = NetworkConfig({
             subscriptionId: subscriptionId,
             gasLane: 0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c, // doesn't really matter
-            automationUpdateInterval: 30, // 30 seconds
+            automationUpdateInterval: 120, // 30 seconds
             raffleEntranceFee: 0.01 ether,
             callbackGasLimit: 500000, // 500,000 gas
             vrfCoordinatorV2_5: address(vrfCoordinatorV2_5Mock),
@@ -126,4 +128,36 @@ contract HelperConfig is CodeConstants, Script {
         vm.deal(localNetworkConfig.account, 100 ether);
         return localNetworkConfig;
     }
+
+    function getOrCreateZKSyncConfig() public returns (NetworkConfig memory) {
+        // Check to see if we set an active network config
+        if (localNetworkConfig.vrfCoordinatorV2_5 != address(0)) {
+            return localNetworkConfig;
+        }
+
+        console2.log(unicode"⚠️ You have deployed a mock conract!");
+        console2.log("Make sure this was intentional");
+        vm.startBroadcast();
+        VRFCoordinatorV2_5Mock vrfCoordinatorV2_5Mock =
+            new VRFCoordinatorV2_5Mock(MOCK_BASE_FEE, MOCK_GAS_PRICE_LINK, MOCK_WEI_PER_UINT_LINK);
+        LinkToken link = new LinkToken();
+        uint256 subscriptionId = vrfCoordinatorV2_5Mock.createSubscription();
+        vm.stopBroadcast();
+
+        localNetworkConfig = NetworkConfig({
+            subscriptionId: subscriptionId,
+            gasLane: 0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c, // doesn't really matter
+            automationUpdateInterval: 120, // 120 seconds
+            raffleEntranceFee: 0.01 ether,
+            callbackGasLimit: 5000000, // 500,000 gas
+            vrfCoordinatorV2_5: address(vrfCoordinatorV2_5Mock),
+            link: address(link),
+            account: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+        });
+        vm.deal(localNetworkConfig.account, 100 ether);
+        return localNetworkConfig;
+    }
+
+    
+
 }

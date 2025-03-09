@@ -72,7 +72,7 @@ const RaffleFactory = () => {
     <div className="max-w-6xl mx-auto p-6 bg-gray-50 min-h-screen">
       <div className="w-full flex justify-center">
         <div className="w-full max-w-4xl h-[40vh] md:h-[50vh] lg:h-[60vh]">
-          <Aww />
+          
         </div>
       </div>
       <header className="mb-8">
