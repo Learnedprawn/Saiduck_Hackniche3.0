@@ -3,7 +3,6 @@
 .PHONY: all test clean deploy fund help install snapshot format anvil 
 
 DEFAULT_ANVIL_KEY := 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-PRIVATE_KEY:=c5900f468e094055fd0c9783250d99c0a7708b6d660ec409b0a1932c975c3126
 RPC_URL:=http://127.0.0.1:8545
 ETHERSCAN_API_KEY:=Y5CDIEBAJ1UH3G3RQ4TF1KKF7SPQEIBSCX
 SEPOLIA_RPC_URL:=https://eth-sepolia.g.alchemy.com/v2/c_3aKzrr1TsioNKfgm0GpBXkr5lr5I7t
